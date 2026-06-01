@@ -7,20 +7,36 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Require NPM_TOKEN secret
+        env:
+          HAS_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::NPM_TOKEN is not set. Add an npm automation token at:"
+            echo "https://github.com/${{ github.repository }}/settings/secrets/actions"
+            echo "Name: NPM_TOKEN — Create token: https://www.npmjs.com/settings/~/tokens (Automation, Publish)"
+            exit 1
+          fi
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          registry-url: https://registry.npmjs.org
+          registry-url: "https://registry.npmjs.org"
           cache: npm
+
       - run: npm ci
       - run: npm run build
       - run: npm test
-      - run: npm publish --provenance --access public
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

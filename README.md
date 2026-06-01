@@ -105,6 +105,15 @@ Or run the built-in workflow pattern from [.github/workflows/repo-clarity-pr.yml
 
 This package is configured for **public** npm (`publishConfig.access: public`).
 
+**GitHub Actions (tag `v*`):** add repository secret `NPM_TOKEN` ([Actions secrets](https://github.com/Sosuke1006/repo-clarity/settings/secrets/actions)) — use an npm **Automation** token with **Publish** permission from [npm tokens](https://www.npmjs.com/settings/~/tokens). Then push a tag:
+
+```bash
+git tag v0.1.1
+git push origin v0.1.1
+```
+
+Manual publish:
+
 ```bash
 npm run build
 npm test
