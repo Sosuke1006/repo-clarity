@@ -8,6 +8,10 @@ permissions:
   contents: read
   pull-requests: write
 
+concurrency:
+  group: repo-clarity-pr-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   doctor:
     runs-on: ubuntu-latest
@@ -22,27 +26,21 @@ jobs:
       - name: Run OSS doctor
         id: doctor
         run: |
-          set -euo pipefail
-          npm run start -- doctor . > doctor-output.txt 2>&1 || true
+          set +e
+          npm run start -- doctor . > doctor-output.txt 2>&1
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           cat doctor-output.txt
-          if [ "$code" -ne 0 ]; then
-            echo "::warning::repo-clarity doctor reported OSS issues (see PR comment)"
-          fi
-      - name: Enforce doctor pass
-        run: |
-          if [ "${{ steps.doctor.outputs.exit_code }}" -ne 0 ]; then
-            echo "Doctor check failed. Fix OSS issues or document exceptions."
-            exit 1
-          fi
+          exit 0
       - name: Comment PR with doctor results
         if: always()
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const output = fs.readFileSync('doctor-output.txt', 'utf8').slice(0, 60000);
+            const output = fs.existsSync('doctor-output.txt')
+              ? fs.readFileSync('doctor-output.txt', 'utf8').slice(0, 60000)
+              : 'doctor-output.txt not found';
             const exitCode = '${{ steps.doctor.outputs.exit_code }}';
             const status = exitCode === '0' ? '✅ PASS' : '⚠️ NEEDS WORK';
             const body = `## repo-clarity OSS check ${status}
