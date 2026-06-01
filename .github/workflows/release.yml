@@ -36,6 +36,16 @@ jobs:
       - run: npm run build
       - run: npm test
 
+      - name: Verify package version matches git tag
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG=$(node -p "require('./package.json').version")
+          echo "Tag: v${TAG} — package.json: ${PKG}"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "::error::Git tag v${TAG} must match package.json version (${PKG}). Bump version and push tag v${PKG}."
+            exit 1
+          fi
+
       - name: Publish to npm
         run: npm publish --provenance --access public
         env:

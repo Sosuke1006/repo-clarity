@@ -1,6 +1,6 @@
 {
   "name": "repo-clarity",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Analyze any GitHub repository and generate or improve README, CONTRIBUTING, issue templates, and architecture summaries",
   "type": "module",
   "bin": {

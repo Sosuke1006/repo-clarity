@@ -16,7 +16,7 @@ inputs:
   version:
     description: npm package version to install
     required: false
-    default: "0.1.1"
+    default: "0.1.2"
 
 runs:
   using: composite

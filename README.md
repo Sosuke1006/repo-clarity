@@ -81,11 +81,11 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - uses: Sosuke1006/repo-clarity@v0.1.1
+      - uses: Sosuke1006/repo-clarity@v0.1.2
         with:
           path: .
           comment-on-pr: "true"
-          version: "0.1.1"
+          version: "0.1.2"
 ```
 
 Or run the built-in workflow pattern from [.github/workflows/repo-clarity-pr.yml](.github/workflows/repo-clarity-pr.yml).
@@ -108,8 +108,8 @@ This package is configured for **public** npm (`publishConfig.access: public`).
 **GitHub Actions (tag `v*`):** add repository secret `NPM_TOKEN` ([Actions secrets](https://github.com/Sosuke1006/repo-clarity/settings/secrets/actions)) — use an npm **Automation** token with **Publish** permission from [npm tokens](https://www.npmjs.com/settings/~/tokens). Then push a tag:
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 Manual publish (no provenance — use GitHub Release workflow for provenance):

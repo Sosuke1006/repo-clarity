@@ -17,7 +17,7 @@ program
   .description(
     "Analyze GitHub repositories and generate OSS documentation scaffolding",
   )
-  .version("0.1.1")
+  .version("0.1.2")
   .option(
     "--allow-absolute",
     "Allow absolute repository paths (only for directories you trust)",
