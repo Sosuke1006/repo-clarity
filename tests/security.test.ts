@@ -1,8 +1,13 @@
-import { mkdir, rm } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it } from "vitest";
-import { assertSafeRepoPath, redactSecrets } from "../src/utils/security.js";
+import {
+  assertPathWithinRepo,
+  assertSafeRepoPath,
+  detectSecretsInText,
+  redactSecrets,
+} from "../src/utils/security.js";
 
 let tempDir: string;
 
@@ -14,7 +19,7 @@ describe("assertSafeRepoPath", () => {
   it("rejects relative path traversal outside cwd", async () => {
     tempDir = await mkdir(join(tmpdir(), "repo-clarity-sec-"), {
       recursive: true,
-    }).then((d) => d);
+    });
 
     const original = process.cwd();
     process.chdir(tempDir);
@@ -25,10 +30,25 @@ describe("assertSafeRepoPath", () => {
     }
   });
 
+  it("rejects absolute paths without allowAbsolute", async () => {
+    tempDir = await mkdir(join(tmpdir(), "repo-clarity-sec-"), {
+      recursive: true,
+    });
+    await expect(assertSafeRepoPath(tempDir)).rejects.toThrow(/allow-absolute/);
+  });
+
+  it("allows absolute path with allowAbsolute", async () => {
+    tempDir = await mkdir(join(tmpdir(), "repo-clarity-sec-"), {
+      recursive: true,
+    });
+    const resolved = await assertSafeRepoPath(tempDir, { allowAbsolute: true });
+    expect(resolved).toBeTruthy();
+  });
+
   it("allows valid subdirectory", async () => {
     tempDir = await mkdir(join(tmpdir(), "repo-clarity-sec-"), {
       recursive: true,
-    }).then((d) => d);
+    });
     const sub = join(tempDir, "repo");
     await mkdir(sub, { recursive: true });
 
@@ -40,6 +60,32 @@ describe("assertSafeRepoPath", () => {
     } finally {
       process.chdir(original);
     }
+  });
+});
+
+describe("assertPathWithinRepo", () => {
+  it("rejects output path traversal", async () => {
+    tempDir = await mkdir(join(tmpdir(), "repo-clarity-out-"), {
+      recursive: true,
+    });
+    await expect(
+      assertPathWithinRepo(tempDir, "../../outside.md"),
+    ).rejects.toThrow(/parent directory|stay within/);
+  });
+
+  it("allows safe relative output", async () => {
+    tempDir = await mkdir(join(tmpdir(), "repo-clarity-out-"), {
+      recursive: true,
+    });
+    const out = await assertPathWithinRepo(tempDir, "docs/ARCHITECTURE.md");
+    expect(out.replace(/\\/g, "/")).toContain("/docs/ARCHITECTURE.md");
+  });
+});
+
+describe("detectSecretsInText", () => {
+  it("detects OpenAI-style keys", () => {
+    const found = detectSecretsInText("key=sk-abcdefghijklmnopqrstuvwxyz1234567890");
+    expect(found).toContain("OpenAI API key");
   });
 });
 

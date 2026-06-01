@@ -1,10 +1,16 @@
 import { runDoctor } from "../core/doctor.js";
 import { scanRepository } from "../core/repoScanner.js";
+import type { PathOptions } from "../types.js";
 import { log } from "../utils/log.js";
 import { resolveRepoPath } from "../utils/paths.js";
 
-export async function runDoctorCommand(path?: string): Promise<void> {
-  const root = await resolveRepoPath(path);
+export async function runDoctorCommand(
+  path?: string,
+  options: PathOptions = {},
+): Promise<void> {
+  const root = await resolveRepoPath(path, {
+    allowAbsolute: options.allowAbsolute,
+  });
   const scan = await scanRepository(root);
   const report = await runDoctor(scan);
 

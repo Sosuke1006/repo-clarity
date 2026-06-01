@@ -44,8 +44,8 @@ repo-clarity generate architecture
 
 # Optional LLM refinement (requires API key or local Ollama)
 export REPO_CLARITY_OPENAI_API_KEY="your-key"
-repo-clarity refine readme --dry-run
-repo-clarity refine readme --force
+repo-clarity refine readme --i-understand-llm-risk --dry-run
+repo-clarity refine readme --i-understand-llm-risk --force
 ```
 
 ## Commands
@@ -59,7 +59,9 @@ repo-clarity refine readme --force
 | `generate contributing` | Create `CONTRIBUTING.md` |
 | `generate issue-templates` | GitHub bug + feature templates |
 | `generate architecture` | `docs/ARCHITECTURE.md` with dependency table + Mermaid |
-| `refine readme` | LLM polish (`--provider openai\|ollama`, `--model`) |
+| `refine readme` | LLM polish (`--i-understand-llm-risk`, `--provider openai\|ollama`) |
+
+Global flag: `--allow-absolute` (use only for trusted absolute paths).
 
 ## GitHub Action (PR comments)
 
@@ -79,20 +81,22 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - uses: Sosuke1006/repo-clarity@v0.1.0
+      - uses: Sosuke1006/repo-clarity@v0.1.1
         with:
           path: .
           comment-on-pr: "true"
+          version: "0.1.1"
 ```
 
 Or run the built-in workflow pattern from [.github/workflows/repo-clarity-pr.yml](.github/workflows/repo-clarity-pr.yml).
 
 ## Security
 
-- Path traversal protection for relative paths
-- Blocked system directory scans
-- 512 KiB read limit per file
-- `npm audit` in CI; Dependabot enabled
+- Write paths constrained to repository root (`generate --output`)
+- Symlinks skipped during scans; sensitive paths blocked (`.ssh`, `.aws`, …)
+- Absolute scan paths require `--allow-absolute`
+- LLM: `--i-understand-llm-risk`, secret detection, local-only Ollama by default
+- 512 KiB read limit per file; `npm audit` in CI; Dependabot enabled
 - See [SECURITY.md](SECURITY.md) for reporting vulnerabilities
 
 **Never commit API keys.** Copy [.env.example](.env.example) and use `REPO_CLARITY_OPENAI_API_KEY`.

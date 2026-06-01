@@ -1,10 +1,16 @@
 import { scanRepository } from "../core/repoScanner.js";
 import { summarizeRepository } from "../core/summarizer.js";
+import type { PathOptions } from "../types.js";
 import { log } from "../utils/log.js";
 import { resolveRepoPath } from "../utils/paths.js";
 
-export async function runSummary(path?: string): Promise<void> {
-  const root = await resolveRepoPath(path);
+export async function runSummary(
+  path?: string,
+  options: PathOptions = {},
+): Promise<void> {
+  const root = await resolveRepoPath(path, {
+    allowAbsolute: options.allowAbsolute,
+  });
   const scan = await scanRepository(root);
   const summary = summarizeRepository(scan);
 

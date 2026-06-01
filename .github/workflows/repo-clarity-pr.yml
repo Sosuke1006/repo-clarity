@@ -22,13 +22,22 @@ jobs:
       - name: Run OSS doctor
         id: doctor
         run: |
-          set +e
-          npm run start -- doctor . > doctor-output.txt 2>&1
+          set -euo pipefail
+          npm run start -- doctor . > doctor-output.txt 2>&1 || true
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           cat doctor-output.txt
-          exit 0
+          if [ "$code" -ne 0 ]; then
+            echo "::warning::repo-clarity doctor reported OSS issues (see PR comment)"
+          fi
+      - name: Enforce doctor pass
+        run: |
+          if [ "${{ steps.doctor.outputs.exit_code }}" -ne 0 ]; then
+            echo "Doctor check failed. Fix OSS issues or document exceptions."
+            exit 1
+          fi
       - name: Comment PR with doctor results
+        if: always()
         uses: actions/github-script@v7
         with:
           script: |

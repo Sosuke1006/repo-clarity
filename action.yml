@@ -6,13 +6,17 @@ branding:
 
 inputs:
   path:
-    description: Repository path to analyze
+    description: Repository path to analyze (relative, no shell metacharacters)
     required: false
     default: "."
   comment-on-pr:
     description: Post or update a PR comment with doctor results (pull_request events only)
     required: false
     default: "false"
+  version:
+    description: npm package version to install
+    required: false
+    default: "0.1.1"
 
 runs:
   using: composite
@@ -21,11 +25,17 @@ runs:
       with:
         node-version: "22"
     - shell: bash
-      run: |
-        npm install -g repo-clarity@latest || npm install -g .
-        repo-clarity doctor "${{ inputs.path }}" | tee doctor-output.txt
       env:
-        INPUT_PATH: ${{ inputs.path }}
+        RC_PATH: ${{ inputs.path }}
+        RC_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        if [[ "$RC_PATH" =~ [\"\'\`\;\|\&\$\(\)] ]]; then
+          echo "Invalid path: shell metacharacters are not allowed" >&2
+          exit 1
+        fi
+        npm install -g "repo-clarity@${RC_VERSION}"
+        repo-clarity doctor "$RC_PATH" | tee doctor-output.txt
     - name: Comment on PR
       if: inputs.comment-on-pr == 'true' && github.event_name == 'pull_request'
       uses: actions/github-script@v7

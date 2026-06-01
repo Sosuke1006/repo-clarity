@@ -1,4 +1,4 @@
-import { redactSecrets } from "../utils/security.js";
+import { detectSecretsInText, redactSecrets } from "../utils/security.js";
 
 export interface LlmRefineOptions {
   provider: "openai" | "ollama";
@@ -6,6 +6,7 @@ export interface LlmRefineOptions {
   apiKey?: string;
   baseUrl?: string;
   maxTokens?: number;
+  allowSecretsInPayload?: boolean;
 }
 
 export interface LlmRefineResult {
@@ -17,6 +18,8 @@ export interface LlmRefineResult {
 const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 const DEFAULT_OLLAMA_MODEL = "llama3.2";
 const MAX_INPUT_CHARS = 24_000;
+
+const LOCAL_OLLAMA_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
 export function resolveLlmConfig(
   options: Partial<LlmRefineOptions>,
@@ -33,19 +36,56 @@ export function resolveLlmConfig(
     );
   }
 
+  const baseUrl =
+    options.baseUrl ??
+    (provider === "ollama"
+      ? process.env.OLLAMA_HOST ?? "http://127.0.0.1:11434"
+      : "https://api.openai.com/v1");
+
+  if (provider === "ollama") {
+    assertSafeOllamaHost(baseUrl);
+  }
+
   return {
     provider,
     model:
       options.model ??
       (provider === "ollama" ? DEFAULT_OLLAMA_MODEL : DEFAULT_OPENAI_MODEL),
     apiKey,
-    baseUrl:
-      options.baseUrl ??
-      (provider === "ollama"
-        ? process.env.OLLAMA_HOST ?? "http://127.0.0.1:11434"
-        : "https://api.openai.com/v1"),
+    baseUrl,
     maxTokens: options.maxTokens ?? 2048,
+    allowSecretsInPayload: options.allowSecretsInPayload,
   };
+}
+
+function assertSafeOllamaHost(baseUrl: string): void {
+  let hostname: string;
+  try {
+    hostname = new URL(baseUrl).hostname.toLowerCase();
+  } catch {
+    throw new Error("Invalid OLLAMA_HOST URL");
+  }
+
+  if (
+    !LOCAL_OLLAMA_HOSTS.has(hostname) &&
+    process.env.REPO_CLARITY_ALLOW_REMOTE_OLLAMA !== "1"
+  ) {
+    throw new Error(
+      "Remote OLLAMA_HOST is blocked by default. Use localhost or set REPO_CLARITY_ALLOW_REMOTE_OLLAMA=1.",
+    );
+  }
+}
+
+export function assertSafeLlmPayload(
+  payload: string,
+  allowSecrets?: boolean,
+): void {
+  const secrets = detectSecretsInText(payload);
+  if (secrets.length > 0 && !allowSecrets) {
+    throw new Error(
+      `Refusing to send content to LLM: possible secrets detected (${secrets.join(", ")}). Remove secrets or use --allow-secrets-in-llm at your own risk.`,
+    );
+  }
 }
 
 export async function refineReadmeWithLlm(
@@ -56,6 +96,9 @@ export async function refineReadmeWithLlm(
   const config = resolveLlmConfig(options);
   const trimmedDraft = readmeDraft.slice(0, MAX_INPUT_CHARS);
   const trimmedContext = repoContext.slice(0, 8_000);
+  const combined = `${trimmedContext}\n${trimmedDraft}`;
+
+  assertSafeLlmPayload(combined, config.allowSecretsInPayload);
 
   const systemPrompt = `You improve open-source README files. Keep factual content from the draft.
 Do not invent features, URLs, or install steps. Output Markdown only. No code fences around the whole document.`;

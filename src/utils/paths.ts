@@ -1,7 +1,10 @@
-import { assertSafeRepoPath } from "./security.js";
+import { assertSafeRepoPath, type SafeRepoPathOptions } from "./security.js";
 
-export async function resolveRepoPath(path?: string): Promise<string> {
-  return assertSafeRepoPath(path);
+export async function resolveRepoPath(
+  path?: string,
+  options?: SafeRepoPathOptions,
+): Promise<string> {
+  return assertSafeRepoPath(path, options);
 }
 
 export function repoNameFromPath(rootPath: string): string {

@@ -1,4 +1,3 @@
-import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathExists, readTextIfExists } from "../utils/fs.js";
 
@@ -78,7 +77,10 @@ async function parseCargoToml(root: string): Promise<DependencyGraph> {
     return { ecosystem: "cargo", nodes: [], manifestPath: null };
   }
 
-  const text = await readFile(manifestPath, "utf-8");
+  const text = await readTextIfExists(manifestPath);
+  if (!text) {
+    return { ecosystem: "cargo", nodes: [], manifestPath };
+  }
   const nodes: DependencyNode[] = [];
   const depSection = /\[dependencies\]([\s\S]*?)(?=\n\[|$)/.exec(text);
   if (depSection) {

@@ -1,3 +1,8 @@
+export interface PathOptions {
+  path?: string;
+  allowAbsolute?: boolean;
+}
+
 export interface LanguageStats {
   language: string;
   fileCount: number;

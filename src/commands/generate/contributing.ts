@@ -1,14 +1,14 @@
-import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { buildGenerateContext } from "../../core/generateContext.js";
 import { scanRepository } from "../../core/repoScanner.js";
 import { renderTemplate } from "../../core/templateEngine.js";
+import type { PathOptions } from "../../types.js";
 import { pathExists } from "../../utils/fs.js";
 import { log } from "../../utils/log.js";
 import { resolveRepoPath } from "../../utils/paths.js";
+import { writeFileWithinRepo } from "../../utils/writeGuard.js";
 
-export interface GenerateOptions {
-  path?: string;
+export interface GenerateOptions extends PathOptions {
   force?: boolean;
   dryRun?: boolean;
 }
@@ -16,10 +16,12 @@ export interface GenerateOptions {
 export async function generateContributing(
   options: GenerateOptions = {},
 ): Promise<void> {
-  const root = await resolveRepoPath(options.path);
-  const outPath = join(root, "CONTRIBUTING.md");
+  const root = await resolveRepoPath(options.path, {
+    allowAbsolute: options.allowAbsolute,
+  });
+  const outRel = "CONTRIBUTING.md";
 
-  if (!options.force && (await pathExists(outPath))) {
+  if (!options.force && (await pathExists(join(root, outRel)))) {
     log.warn("CONTRIBUTING.md already exists. Use --force to overwrite.");
     process.exitCode = 1;
     return;
@@ -34,6 +36,6 @@ export async function generateContributing(
     return;
   }
 
-  await writeFile(outPath, content, "utf-8");
+  const outPath = await writeFileWithinRepo(root, outRel, content);
   log.success(`Wrote ${outPath}`);
 }

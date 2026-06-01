@@ -19,11 +19,15 @@ We aim to acknowledge reports within 72 hours.
 
 `repo-clarity` runs **locally** on your machine:
 
-- It reads files only under the path you provide.
-- Relative paths cannot escape the current working directory.
-- Absolute paths to system directories (e.g. `C:\Windows`, `/etc`) are blocked.
+- Relative scan paths cannot escape the current working directory.
+- Absolute scan paths require `--allow-absolute` and still block credential directories.
+- Generated files cannot be written outside the repository root.
+- Directory walks skip symbolic links and stay within the resolved repository root.
+- System paths (e.g. `C:\Windows`, `/etc`) are blocked.
 - Individual files larger than 512 KiB are skipped when reading text.
-- API keys for optional LLM refinement must be supplied via environment variables — never commit them.
+- `refine readme` requires `--i-understand-llm-risk` and scans payloads for secret patterns before LLM calls.
+- Remote `OLLAMA_HOST` is blocked unless `REPO_CLARITY_ALLOW_REMOTE_OLLAMA=1`.
+- API keys must be supplied via environment variables — never commit them.
 
 ## Dependency Security
 

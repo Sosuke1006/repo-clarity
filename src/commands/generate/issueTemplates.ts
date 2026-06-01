@@ -1,14 +1,15 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { buildGenerateContext } from "../../core/generateContext.js";
 import { scanRepository } from "../../core/repoScanner.js";
 import { renderTemplate } from "../../core/templateEngine.js";
+import type { PathOptions } from "../../types.js";
 import { pathExists } from "../../utils/fs.js";
 import { log } from "../../utils/log.js";
 import { resolveRepoPath } from "../../utils/paths.js";
+import { writeFileWithinRepo } from "../../utils/writeGuard.js";
 
-export interface GenerateOptions {
-  path?: string;
+export interface GenerateOptions extends PathOptions {
   force?: boolean;
   dryRun?: boolean;
 }
@@ -16,14 +17,16 @@ export interface GenerateOptions {
 export async function generateIssueTemplates(
   options: GenerateOptions = {},
 ): Promise<void> {
-  const root = await resolveRepoPath(options.path);
-  const templateDir = join(root, ".github", "ISSUE_TEMPLATE");
-  const bugPath = join(templateDir, "bug_report.yml");
-  const featurePath = join(templateDir, "feature_request.yml");
+  const root = await resolveRepoPath(options.path, {
+    allowAbsolute: options.allowAbsolute,
+  });
+  const bugRel = ".github/ISSUE_TEMPLATE/bug_report.yml";
+  const featureRel = ".github/ISSUE_TEMPLATE/feature_request.yml";
 
   if (
     !options.force &&
-    ((await pathExists(bugPath)) || (await pathExists(featurePath)))
+    ((await pathExists(join(root, bugRel))) ||
+      (await pathExists(join(root, featureRel))))
   ) {
     log.warn("Issue templates already exist. Use --force to overwrite.");
     process.exitCode = 1;
@@ -44,9 +47,9 @@ export async function generateIssueTemplates(
     return;
   }
 
-  await mkdir(templateDir, { recursive: true });
-  await writeFile(bugPath, bug, "utf-8");
-  await writeFile(featurePath, feature, "utf-8");
-  log.success(`Wrote ${bugPath}`);
-  log.success(`Wrote ${featurePath}`);
+  await mkdir(join(root, ".github", "ISSUE_TEMPLATE"), { recursive: true });
+  await writeFileWithinRepo(root, bugRel, bug);
+  await writeFileWithinRepo(root, featureRel, feature);
+  log.success(`Wrote ${join(root, bugRel)}`);
+  log.success(`Wrote ${join(root, featureRel)}`);
 }

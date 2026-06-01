@@ -18,7 +18,7 @@ describe("generate commands", () => {
     tempDir = await mkdtemp(join(tmpdir(), "repo-clarity-"));
     await cp(join(fixtures, "node-lib"), tempDir, { recursive: true });
 
-    await generateReadme({ path: tempDir, force: true });
+    await generateReadme({ path: tempDir, force: true, allowAbsolute: true });
     const readme = await readFile(join(tempDir, "README.md"), "utf-8");
 
     expect(readme).toContain("# ");
@@ -30,7 +30,7 @@ describe("generate commands", () => {
     tempDir = await mkdtemp(join(tmpdir(), "repo-clarity-"));
     await cp(join(fixtures, "node-lib"), tempDir, { recursive: true });
 
-    await generateIssueTemplates({ path: tempDir, force: true });
+    await generateIssueTemplates({ path: tempDir, force: true, allowAbsolute: true });
     const bug = await readFile(
       join(tempDir, ".github", "ISSUE_TEMPLATE", "bug_report.yml"),
       "utf-8",
