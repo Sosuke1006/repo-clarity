@@ -112,9 +112,10 @@ git tag v0.1.1
 git push origin v0.1.1
 ```
 
-Manual publish:
+Manual publish (no provenance — use GitHub Release workflow for provenance):
 
 ```bash
+npm login
 npm run build
 npm test
 npm publish --access public
