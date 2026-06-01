@@ -1,0 +1,25 @@
+ℹ Scanning .../tests/fixtures/node-lib...
+
+node-lib
+Path: .../tests/fixtures/node-lib
+
+Languages
+  TypeScript: 4 files
+
+Package managers
+  npm
+
+Test frameworks
+  Vitest, Vitest/Jest
+
+CI
+  GitHub Actions (1 workflow(s))
+
+OSS files
+  README: no
+  LICENSE: no
+  CONTRIBUTING: no
+  Issue templates: no
+
+Entry points
+  src/index.ts

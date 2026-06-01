@@ -1,0 +1,58 @@
+# {{name}}
+
+{{description}}
+
+## Features
+
+- Repository analysis and OSS health checks
+- Automated documentation scaffolding
+{{#if hasTests}}
+- Test suite detected ({{#each testFrameworks}}{{this}}{{#unless @last}}, {{/unless}}{{/each}})
+{{/if}}
+{{#if hasCi}}
+- CI via {{ciProvider}}
+{{/if}}
+
+## Requirements
+
+- Node.js 18+ (if applicable) or your project's runtime
+{{#if primaryLanguage}}
+- Primary language: **{{primaryLanguage}}**
+{{/if}}
+
+## Installation
+
+```bash
+{{installCommand}}
+```
+
+## Development
+
+```bash
+# Run tests
+{{testCommand}}
+```
+{{#if buildCommand}}
+
+```bash
+# Build
+npm run build
+```
+{{/if}}
+
+## Project structure
+
+```
+.
+{{#each structure}}
+├── {{this}}
+{{/each}}
+```
+
+## Contributing
+
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+
+## License
+
+See [LICENSE](LICENSE) for details.

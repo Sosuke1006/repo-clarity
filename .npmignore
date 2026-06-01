@@ -1,0 +1,10 @@
+src/
+tests/
+examples/
+.github/
+scripts/
+*.test.ts
+.env
+.env.*
+coverage/
+.vscode/

@@ -1,0 +1,59 @@
+{
+  "name": "repo-clarity",
+  "version": "0.1.0",
+  "description": "Analyze any GitHub repository and generate or improve README, CONTRIBUTING, issue templates, and architecture summaries",
+  "type": "module",
+  "bin": {
+    "repo-clarity": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "src/templates"
+  ],
+  "scripts": {
+    "build": "tsc && node scripts/copy-templates.mjs",
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "cli",
+    "github",
+    "oss",
+    "readme",
+    "contributing",
+    "repository",
+    "documentation",
+    "dx"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "homepage": "https://github.com/Sosuke1006/repo-clarity#readme",
+  "bugs": {
+    "url": "https://github.com/Sosuke1006/repo-clarity/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sosuke1006/repo-clarity.git"
+  },
+  "dependencies": {
+    "commander": "^13.1.0",
+    "handlebars": "^4.7.8",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  }
+}

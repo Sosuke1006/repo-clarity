@@ -1,0 +1,9 @@
+OSS health check: node-lib
+Score: 50/100
+Status: NEEDS WORK
+
+✖ [error] LICENSE file is missing
+   → Add an MIT or Apache-2.0 LICENSE file
+⚠ [warning] README is missing
+   → Run: repo-clarity generate readme
+...

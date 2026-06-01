@@ -1,0 +1,39 @@
+name: Feature request
+description: Suggest an idea for {{name}}
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem you want solved and how a feature would help.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What pain point does this address?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like this to work?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you've thought about.
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - Documentation / DX
+        - CLI behavior
+        - Core analysis
+        - Other
+    validations:
+      required: true

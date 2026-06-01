@@ -1,0 +1,73 @@
+name: repo-clarity PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Run OSS doctor
+        id: doctor
+        run: |
+          set +e
+          npm run start -- doctor . > doctor-output.txt 2>&1
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          cat doctor-output.txt
+          exit 0
+      - name: Comment PR with doctor results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('doctor-output.txt', 'utf8').slice(0, 60000);
+            const exitCode = '${{ steps.doctor.outputs.exit_code }}';
+            const status = exitCode === '0' ? '✅ PASS' : '⚠️ NEEDS WORK';
+            const body = `## repo-clarity OSS check ${status}
+
+            \`\`\`
+            ${output}
+            \`\`\`
+
+            Run locally: \`npx repo-clarity doctor\`
+
+            ---
+            <sub>Powered by [repo-clarity](https://github.com/Sosuke1006/repo-clarity)</sub>`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const marker = '## repo-clarity OSS check';
+            const existing = comments.find((c) =>
+              c.user?.type === 'Bot' && c.body?.includes(marker),
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
